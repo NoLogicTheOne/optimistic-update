@@ -1,19 +1,42 @@
-type DBFields = "temperature";
+import { Breakpoint } from "../types";
+
+type DBFields = {
+  temperature: number;
+  breakpoints: Breakpoint[];
+};
 
 class DB {
   static instance = new DB();
-  private db: Record<DBFields, number> = { temperature: 25 };
+  private db: DBFields = {
+    temperature: 25,
+    breakpoints: [{ degree: 25, id: "1" }],
+  };
 
-  public get(param: DBFields) {
+  public get<TField extends keyof DBFields>(param: TField) {
     return this.db[param];
   }
 
-  public put(param: DBFields, value: number) {
-    if (value < 10) {
+  public put<TField extends keyof DBFields>(
+    param: TField,
+    value: DBFields[TField]
+  ) {
+    if (param === "temperature" && value < 10) {
       throw new Error("Incorrect user input");
     }
 
     this.db[param] = value;
+    return this.db[param];
+  }
+
+  public delete(param: "breakpoints", id: string) {
+    this.db[param] = this.db[param].filter((bp) => bp.id !== id);
+
+    return this.db[param];
+  }
+
+  public post(param: "breakpoints", nextBreakpoint: Breakpoint) {
+    this.db[param].push(nextBreakpoint);
+
     return this.db[param];
   }
 }
@@ -32,19 +55,38 @@ class FakeServer {
     return this.db;
   };
 
-  public async get(param: DBFields) {
+  public async get<TField extends keyof DBFields>(param: TField) {
     const db = await this.request();
-    const result = db.get(param);
+    const result = db.get<typeof param>(param);
 
-    console.log("get request ready ", result);
+    console.log("get request ready ", param, result);
     return result;
   }
 
-  public async put(param: DBFields, value: number) {
+  public async put<TField extends keyof DBFields>(
+    param: TField,
+    value: DBFields[TField]
+  ) {
     const db = await this.request();
     const result = db.put(param, value);
 
     console.log("put request ready ", result);
+    return result;
+  }
+
+  public async post(param: "breakpoints", nextBreakpoint: Breakpoint) {
+    const db = await this.request();
+    const result = db.post(param, nextBreakpoint);
+
+    console.log("post request ready ", result);
+    return result;
+  }
+
+  public async delete(param: "breakpoints", id: string) {
+    const db = await this.request();
+    const result = db.delete(param, id);
+
+    console.log("delete request ready ", result);
     return result;
   }
 }

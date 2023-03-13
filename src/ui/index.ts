@@ -1,1 +1,2 @@
-export * from './TargetTemperatureControl'
+export * from "./TargetTemperatureControl";
+export * from "./BreakpointsControl";
