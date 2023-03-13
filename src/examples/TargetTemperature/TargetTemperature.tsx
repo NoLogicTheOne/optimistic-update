@@ -1,22 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { fastServer } from "../../fakeServer";
+import { longServer } from "../../fakeServer";
 import { TargetTemperatureControl } from "../../ui";
 
-const server = fastServer;
+const server = longServer;
 
 export const TargetTemperature = () => {
   const queryClient = useQueryClient();
 
-  const { data: temperature, isLoading } = useQuery("temperature", () =>
-    server.get("temperature")
-  );
+  const {
+    data: temperature,
+    isLoading,
+    isFetching,
+  } = useQuery("temperature", () => server.get("temperature"));
 
-  const { mutateAsync: setTemperature } = useMutation(
-    (nextTemperature: number) => server.put("temperature", nextTemperature),
-    {
-      onSuccess: () => queryClient.invalidateQueries("temperature"),
-    }
-  );
+  const { mutateAsync: setTemperature, isLoading: isSettingTemperature } =
+    useMutation(
+      (nextTemperature: number) => server.put("temperature", nextTemperature),
+      {
+        onSuccess: () => queryClient.invalidateQueries("temperature"),
+      }
+    );
 
   if (isLoading) return <>Loading</>;
 
@@ -29,6 +32,7 @@ export const TargetTemperature = () => {
         setTemperature(temperature! - 1);
       }}
       current={temperature!}
+      disabled={isSettingTemperature || isLoading || isFetching}
     />
   );
 };
