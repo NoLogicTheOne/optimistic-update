@@ -9,6 +9,10 @@ class DB {
   }
 
   public put(param: DBFields, value: number) {
+    if (value < 10) {
+      throw new Error("Incorrect user input");
+    }
+
     this.db[param] = value;
     return this.db[param];
   }
@@ -29,26 +33,18 @@ class FakeServer {
   };
 
   public async get(param: DBFields) {
-    console.groupCollapsed("get request");
-    console.log("get request accepted");
-
     const db = await this.request();
     const result = db.get(param);
 
     console.log("get request ready ", result);
-    console.groupEnd();
     return result;
   }
 
   public async put(param: DBFields, value: number) {
-    console.groupCollapsed("put request");
-    console.log("put request accepted");
-
     const db = await this.request();
     const result = db.put(param, value);
 
     console.log("put request ready ", result);
-    console.groupEnd();
     return result;
   }
 }

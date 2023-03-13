@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { fastServer } from "../../fakeServer";
+import { longServer } from "../../fakeServer";
 import { TargetTemperatureControl } from "../../ui";
 
-const server = fastServer;
+const server = longServer;
 
 export const TargetTemperature = () => {
   const queryClient = useQueryClient();
@@ -14,7 +14,21 @@ export const TargetTemperature = () => {
   const { mutateAsync: setTemperature } = useMutation(
     (nextTemperature: number) => server.put("temperature", nextTemperature),
     {
-      onSuccess: () => queryClient.invalidateQueries("temperature"),
+      onMutate: async (nextTemperature) => {
+        await queryClient.cancelQueries("temperature");
+
+        const prevTemperature = queryClient.getQueryData("temperature");
+        queryClient.setQueryData("temperature", nextTemperature);
+
+        return prevTemperature;
+      },
+      onError: (_err, _nextTemperature, context) => {
+        queryClient.setQueryData("temperature", context);
+        // Тут можно дополнительно обработать ошибку
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries("temperature");
+      },
     }
   );
 
