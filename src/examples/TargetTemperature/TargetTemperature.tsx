@@ -1,11 +1,10 @@
 import { useQuery } from "react-query";
 import { useOptimisticMutation } from "../../core/useOptimisticMutation";
 import { longServer } from "../../fakeServer";
+import { Breakpoint } from "../../types";
 import { BreakpointsControl, TargetTemperatureControl } from "../../ui";
 
 const server = longServer;
-
-const nope = () => new Promise(() => {});
 
 export const TargetTemperature = () => {
   const { data: temperature, isLoading } = useQuery("temperature", () =>
@@ -18,6 +17,22 @@ export const TargetTemperature = () => {
   const { mutateAsync: setTemperature } = useOptimisticMutation(
     (nextTemperature: number) => server.put("temperature", nextTemperature),
     "temperature"
+  );
+
+  const { mutateAsync: addBreakpoint } = useOptimisticMutation(
+    (nextBreakpoint: Breakpoint) => server.post("breakpoints", nextBreakpoint),
+    {
+      queryKey: "breakpoints",
+      transformFunc: (nextData) => [...(breakpoints || []), nextData],
+    }
+  );
+
+  const { mutateAsync: deleteBreakpoint } = useOptimisticMutation(
+    (id: string) => server.delete("breakpoints", id),
+    {
+      queryKey: "breakpoints",
+      transformFunc: (id) => (breakpoints || [])?.filter((bp) => bp.id !== id),
+    }
   );
 
   if (isLoading) return <>Loading</>;
@@ -35,8 +50,8 @@ export const TargetTemperature = () => {
       />
       {breakpoints && (
         <BreakpointsControl
-          onAdd={nope}
-          onDelete={nope}
+          onAdd={addBreakpoint}
+          onDelete={deleteBreakpoint}
           breakpoints={breakpoints}
         />
       )}

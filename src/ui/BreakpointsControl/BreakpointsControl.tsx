@@ -26,7 +26,15 @@ export const BreakpointsControl: FC<BreakpointProps> = ({
           onChange={(e) => setNextBreakpoint(+e.target.value)}
           className={styles.input}
         />
-        <button className={styles.add}>+</button>
+        <button
+          className={styles.add}
+          onClick={() =>
+            nextBreakpoint &&
+            onAdd({ id: `break:${nextBreakpoint}`, degree: nextBreakpoint })
+          }
+        >
+          +
+        </button>
       </span>
 
       {breakpoints.map((breakpoint) => (

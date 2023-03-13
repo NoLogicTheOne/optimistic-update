@@ -35,8 +35,11 @@ class DB {
   }
 
   public post(param: "breakpoints", nextBreakpoint: Breakpoint) {
-    this.db[param].push(nextBreakpoint);
+    if (this.db[param].find((bp) => bp.id === nextBreakpoint.id)) {
+      return this.db[param];
+    }
 
+    this.db[param].push(nextBreakpoint);
     return this.db[param];
   }
 }

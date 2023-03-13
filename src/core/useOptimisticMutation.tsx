@@ -5,6 +5,11 @@ import {
   useQueryClient,
 } from "react-query";
 
+type TransformObject<TVariables, TContext> = {
+  queryKey: string;
+  transformFunc: (nextData: TVariables) => TContext;
+};
+
 export function useOptimisticMutation<
   TData = unknown,
   TError = unknown,
@@ -12,20 +17,30 @@ export function useOptimisticMutation<
   TContext = unknown
 >(
   mutationFunc: MutationFunction<TData, TVariables>,
-  queryKey: string,
+  transformObject: string | TransformObject<TVariables, TContext>,
   options?: Omit<
     UseMutationOptions<TData, TError, TVariables, TContext>,
     "mutationFn"
   >
 ) {
   const queryClient = useQueryClient();
+  const hasTransformFunc = typeof transformObject !== "string";
+
+  const queryKey = !hasTransformFunc
+    ? transformObject
+    : transformObject.queryKey;
 
   return useMutation<TData, TError, TVariables>(mutationFunc, {
     onMutate: async (nextData) => {
       await queryClient.cancelQueries(queryKey);
 
       const prevData = queryClient.getQueryData(queryKey);
-      queryClient.setQueryData(queryKey, nextData);
+
+      const preparedData = hasTransformFunc
+        ? transformObject.transformFunc(nextData)
+        : nextData;
+
+      queryClient.setQueryData(queryKey, preparedData);
 
       return prevData;
     },
