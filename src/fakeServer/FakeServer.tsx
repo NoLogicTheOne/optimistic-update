@@ -29,22 +29,26 @@ class FakeServer {
   };
 
   public async get(param: DBFields) {
+    console.groupCollapsed("get request");
     console.log("get request accepted");
 
     const db = await this.request();
     const result = db.get(param);
 
     console.log("get request ready ", result);
+    console.groupEnd();
     return result;
   }
 
   public async put(param: DBFields, value: number) {
+    console.groupCollapsed("put request");
     console.log("put request accepted");
 
     const db = await this.request();
     const result = db.put(param, value);
 
     console.log("put request ready ", result);
+    console.groupEnd();
     return result;
   }
 }
