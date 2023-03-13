@@ -1,35 +1,18 @@
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import { useQuery } from "react-query";
+import { useOptimisticMutation } from "../../core/useOptimisticMutation";
 import { longServer } from "../../fakeServer";
 import { TargetTemperatureControl } from "../../ui";
 
 const server = longServer;
 
 export const TargetTemperature = () => {
-  const queryClient = useQueryClient();
-
   const { data: temperature, isLoading } = useQuery("temperature", () =>
     server.get("temperature")
   );
 
-  const { mutateAsync: setTemperature } = useMutation(
+  const { mutateAsync: setTemperature } = useOptimisticMutation(
     (nextTemperature: number) => server.put("temperature", nextTemperature),
-    {
-      onMutate: async (nextTemperature) => {
-        await queryClient.cancelQueries("temperature");
-
-        const prevTemperature = queryClient.getQueryData("temperature");
-        queryClient.setQueryData("temperature", nextTemperature);
-
-        return prevTemperature;
-      },
-      onError: (_err, _nextTemperature, context) => {
-        queryClient.setQueryData("temperature", context);
-        // Тут можно дополнительно обработать ошибку
-      },
-      onSettled: () => {
-        queryClient.invalidateQueries("temperature");
-      },
-    }
+    "temperature"
   );
 
   if (isLoading) return <>Loading</>;
