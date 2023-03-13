@@ -1,20 +1,27 @@
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { fastServer } from "../../fakeServer";
+import { longServer } from "../../fakeServer";
 import { TargetTemperatureControl } from "../../ui";
 
-const server = fastServer;
+const server = longServer;
 
 export const TargetTemperature = () => {
   const queryClient = useQueryClient();
+  const [stateTemperature, setStateTemperature] = useState<number>();
 
-  const { data: temperature, isLoading } = useQuery("temperature", () =>
-    server.get("temperature")
+  const { isLoading } = useQuery(
+    "temperature",
+    () => server.get("temperature"),
+    {
+      onSuccess: (data) => setStateTemperature(data),
+    }
   );
 
   const { mutateAsync: setTemperature } = useMutation(
     (nextTemperature: number) => server.put("temperature", nextTemperature),
     {
       onSuccess: () => queryClient.invalidateQueries("temperature"),
+      onMutate: (nextTemperature) => setStateTemperature(nextTemperature),
     }
   );
 
@@ -23,12 +30,12 @@ export const TargetTemperature = () => {
   return (
     <TargetTemperatureControl
       increment={() => {
-        setTemperature(temperature! + 1);
+        setTemperature(stateTemperature! + 1);
       }}
       decrement={() => {
-        setTemperature(temperature! - 1);
+        setTemperature(stateTemperature! - 1);
       }}
-      current={temperature!}
+      current={stateTemperature!}
     />
   );
 };
