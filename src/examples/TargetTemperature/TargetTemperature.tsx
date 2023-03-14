@@ -35,14 +35,25 @@ export const TargetTemperature = () => {
   if (isLoading) return <>Loading</>;
 
   return (
-    <TargetTemperatureControl
-      increment={() => {
-        setTemperature(temperature! + 1);
-      }}
-      decrement={() => {
-        setTemperature(temperature! - 1);
-      }}
-      current={temperature!}
-    />
+    <>
+      <TargetTemperatureControl
+        increment={() => {
+          setTemperature(temperature! + 1);
+        }}
+        decrement={() => {
+          setTemperature(temperature! - 1);
+        }}
+        current={temperature!}
+      />
+      <Addict />
+    </>
   );
 };
+
+function Addict() {
+  const { data: temperature } = useQuery("temperature", () =>
+    server.get("temperature")
+  );
+
+  return <>{temperature}&deg;</>;
+}
