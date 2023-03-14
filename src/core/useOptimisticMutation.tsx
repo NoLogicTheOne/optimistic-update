@@ -30,7 +30,8 @@ export function useOptimisticMutation<
     ? transformObject
     : transformObject.queryKey;
 
-  return useMutation<TData, TError, TVariables>(mutationFunc, {
+  return useMutation<TData, TError, TVariables, TContext>(mutationFunc, {
+    ...options,
     onMutate: async (nextData) => {
       await queryClient.cancelQueries(queryKey);
 
@@ -42,7 +43,7 @@ export function useOptimisticMutation<
 
       queryClient.setQueryData(queryKey, preparedData);
 
-      return prevData;
+      return prevData as TContext;
     },
     onError: (err, _nextData, prevData) => {
       options?.onError?.(err, _nextData, prevData as TContext);
