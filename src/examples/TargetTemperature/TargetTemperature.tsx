@@ -2,21 +2,13 @@ import { useQuery } from "react-query";
 import { useOptimisticMutation } from "../../core/useOptimisticMutation";
 import { longServer } from "../../fakeServer";
 import { Breakpoint } from "../../types";
-import { BreakpointsControl, TargetTemperatureControl } from "../../ui";
+import { BreakpointsControl } from "../../ui";
 
 const server = longServer;
 
 export const TargetTemperature = () => {
-  const { data: temperature, isLoading } = useQuery("temperature", () =>
-    server.get("temperature")
-  );
-  const { data: breakpoints } = useQuery("breakpoints", () =>
+  const { data: breakpoints, isLoading } = useQuery("breakpoints", () =>
     server.get("breakpoints")
-  );
-
-  const { mutateAsync: setTemperature } = useOptimisticMutation(
-    (nextTemperature: number) => server.put("temperature", nextTemperature),
-    "temperature"
   );
 
   const { mutateAsync: addBreakpoint } = useOptimisticMutation(
@@ -39,15 +31,6 @@ export const TargetTemperature = () => {
 
   return (
     <span>
-      <TargetTemperatureControl
-        increment={() => {
-          setTemperature(temperature! + 1);
-        }}
-        decrement={() => {
-          setTemperature(temperature! - 1);
-        }}
-        current={temperature}
-      />
       {breakpoints && (
         <BreakpointsControl
           onAdd={addBreakpoint}

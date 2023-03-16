@@ -9,7 +9,11 @@ class DB {
   static instance = new DB();
   private db: DBFields = {
     temperature: 25,
-    breakpoints: [{ degree: 25, id: "1" }],
+    breakpoints: [
+      { degree: 25, id: "break:25" },
+      { degree: 15, id: "break:15" },
+      { degree: 35, id: "break:35" },
+    ],
   };
 
   public get<TField extends keyof DBFields>(param: TField) {

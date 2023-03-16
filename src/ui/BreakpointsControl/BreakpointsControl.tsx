@@ -39,7 +39,7 @@ export const BreakpointsControl: FC<BreakpointProps> = ({
 
       {breakpoints.map((breakpoint) => (
         <span key={breakpoint.id} className={styles.row}>
-          Breakpoint on {breakpoint.degree}&deg;
+          Запомнили число {breakpoint.degree}
           <button
             onClick={() => onDelete(breakpoint.id)}
             className={styles.delete}
