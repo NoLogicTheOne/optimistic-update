@@ -1,15 +1,49 @@
-type DBFields = "temperature";
+import { Breakpoint } from "../types";
+
+type DBFields = {
+  temperature: number;
+  breakpoints: Breakpoint[];
+};
 
 class DB {
   static instance = new DB();
-  private db: Record<DBFields, number> = { temperature: 25 };
+  private db: DBFields = {
+    temperature: 25,
+    breakpoints: [
+      { degree: 25, id: "break:25" },
+      { degree: 15, id: "break:15" },
+      { degree: 35, id: "break:35" },
+    ],
+  };
 
-  public get(param: DBFields) {
+  public get<TField extends keyof DBFields>(param: TField) {
     return this.db[param];
   }
 
-  public put(param: DBFields, value: number) {
+  public put<TField extends keyof DBFields>(
+    param: TField,
+    value: DBFields[TField]
+  ) {
+    if (param === "temperature" && value < 10) {
+      throw new Error("Incorrect user input");
+    }
+
     this.db[param] = value;
+    return this.db[param];
+  }
+
+  public delete(param: "breakpoints", id: string) {
+    this.db[param] = this.db[param].filter((bp) => bp.id !== id);
+
+    return this.db[param];
+  }
+
+  public post(param: "breakpoints", nextBreakpoint: Breakpoint) {
+    if (this.db[param].find((bp) => bp.id === nextBreakpoint.id)) {
+      return this.db[param];
+    }
+
+    this.db[param].push(nextBreakpoint);
     return this.db[param];
   }
 }
@@ -28,27 +62,38 @@ class FakeServer {
     return this.db;
   };
 
-  public async get(param: DBFields) {
-    console.groupCollapsed("get request");
-    console.log("get request accepted");
-
+  public async get<TField extends keyof DBFields>(param: TField) {
     const db = await this.request();
-    const result = db.get(param);
+    const result = db.get<typeof param>(param);
 
-    console.log("get request ready ", result);
-    console.groupEnd();
+    console.log("get request ready ", param, result);
     return result;
   }
 
-  public async put(param: DBFields, value: number) {
-    console.groupCollapsed("put request");
-    console.log("put request accepted");
-
+  public async put<TField extends keyof DBFields>(
+    param: TField,
+    value: DBFields[TField]
+  ) {
     const db = await this.request();
     const result = db.put(param, value);
 
     console.log("put request ready ", result);
-    console.groupEnd();
+    return result;
+  }
+
+  public async post(param: "breakpoints", nextBreakpoint: Breakpoint) {
+    const db = await this.request();
+    const result = db.post(param, nextBreakpoint);
+
+    console.log("post request ready ", result);
+    return result;
+  }
+
+  public async delete(param: "breakpoints", id: string) {
+    const db = await this.request();
+    const result = db.delete(param, id);
+
+    console.log("delete request ready ", result);
     return result;
   }
 }

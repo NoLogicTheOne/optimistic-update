@@ -1,29 +1,47 @@
-import { useMutation, useQuery } from "react-query";
-import { fastServer } from "../../fakeServer";
-import { TargetTemperatureControl } from "../../ui";
+import { useQuery } from "react-query";
+import { useOptimisticMutation } from "../../core/useOptimisticMutation";
+import { longServer } from "../../fakeServer";
+import { Breakpoint } from "../../types";
+import { BreakpointsControl } from "../../ui";
 
-const server = fastServer;
+const server = longServer;
 
 export const TargetTemperature = () => {
-  const { data: temperature, isLoading } = useQuery("temperature", () =>
-    server.get("temperature")
+  const { data: breakpoints, isLoading } = useQuery("breakpoints", () =>
+    server.get("breakpoints")
   );
 
-  const { mutateAsync: setTemperature } = useMutation(
-    (nextTemperature: number) => server.put("temperature", nextTemperature)
+  const { mutateAsync: addBreakpoint } = useOptimisticMutation(
+    (nextBreakpoint: Breakpoint) => server.post("breakpoints", nextBreakpoint),
+    {
+      queryKey: "breakpoints",
+      transformFunc: (nextData) => [...(breakpoints || []), nextData],
+    }
+  );
+
+  const { mutateAsync: deleteBreakpoint } = useOptimisticMutation(
+    (id: string) => server.delete("breakpoints", id),
+    {
+      queryKey: "breakpoints",
+      transformFunc: (id) => deleteElementFromList(breakpoints, id),
+    }
   );
 
   if (isLoading) return <>Loading</>;
 
   return (
-    <TargetTemperatureControl
-      increment={() => {
-        setTemperature(temperature! + 1);
-      }}
-      decrement={() => {
-        setTemperature(temperature! - 1);
-      }}
-      current={temperature!}
-    />
+    <span>
+      {breakpoints && (
+        <BreakpointsControl
+          onAdd={addBreakpoint}
+          onDelete={deleteBreakpoint}
+          breakpoints={breakpoints}
+        />
+      )}
+    </span>
   );
 };
+
+function deleteElementFromList(list?: Breakpoint[], id?: string) {
+  return (list || [])?.filter((bp) => bp.id !== id);
+}
