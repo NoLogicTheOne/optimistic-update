@@ -23,7 +23,7 @@ export const TargetTemperature = () => {
     (id: string) => server.delete("breakpoints", id),
     {
       queryKey: "breakpoints",
-      transformFunc: (id) => (breakpoints || [])?.filter((bp) => bp.id !== id),
+      transformFunc: (id) => deleteElementFromList(breakpoints, id),
     }
   );
 
@@ -41,3 +41,7 @@ export const TargetTemperature = () => {
     </span>
   );
 };
+
+function deleteElementFromList(list?: Breakpoint[], id?: string) {
+  return (list || [])?.filter((bp) => bp.id !== id);
+}
